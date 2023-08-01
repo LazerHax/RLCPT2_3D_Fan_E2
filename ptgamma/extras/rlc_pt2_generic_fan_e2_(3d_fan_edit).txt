@@ -1,0 +1,368 @@
+@name RLC PT2 Generic Fan E2 (3D Fan edit)
+@inputs Base:entity On Reverser Throttle Dynamics Vents:array
+@outputs Temperature HeatThrottle HeatAdded HeatRemoved FanSpeed:array IdleOverride
+@persist [FanType FanQType FanPos FanAngle FanModel FanMat FanSize FanRPM FanAccel FanVolume]:array [FanThresholdsUp FanThresholdsDn]:table [FanOn FanOff ShutterSoundOn ShutterSoundOff]:string
+@persist [RadiatorFans DynamicFans FanAxes FanVel Thetas NumFanSpeeds FanSpeed]:array NumRadFans NumDynFans IdleHeat AmbientLoss HeatPerFan Temperature HeatThrottle
+@persist RadiatorBodygroupID RadiatorBodygroupOff RadiatorBodygroup:table CurrentRadiatorBG
+@persist DynamicBodygroupID DynamicBodygroupOn DynamicBodygroupOff CurrentDynamics ShutterQ
+@persist [Size Color]:vector Fan:entity
+@trigger On Vents
+
+if(first()|dupefinished()){
+    
+    local Version = "V1.3"
+    
+    #Pick a Fan Config:
+    #include "ptgamma/extras/q_fancfg/emd_sd80mac"
+    
+    HasDynamics = 0
+    
+    Temperature = 0
+    
+    #Whether or not all fans should be the same color. If 0, fans will use the color assigned to them in the fan config file used.
+    UniversalColor = 0
+    Color = vec(75)
+    
+    RadiatorFans = array()
+    DynamicFans = array()
+    Thetas = array()
+    
+    for(N=1,FanType:count()){
+        local MakeHolo = 1
+        #Assign indices to lists of each fan
+        if(FanType[N,number]==1){ 
+            RadiatorFans[RadiatorFans:count()+1,number] = N
+            NumFanSpeeds[N,number] = FanThresholdsUp[N,array]:count() #Get number of fan speeds based on threshold information
+            FanSpeed[N,number] = 0
+        }elseif((FanType[N,number]==2) & HasDynamics){
+            DynamicFans[DynamicFans:count()+1,number] = N
+        }elseif((FanType[N,number]==2) & !HasDynamics){
+            MakeHolo = 0
+        }
+        if(UniversalColor==1){
+            FColor = Color
+        }else{
+            FColor = FanColor[N,vector]
+        }
+        if(MakeHolo){
+            local Radius = FanSize[N,number]
+            holoCreate(N,Base:toWorld(FanPos[N,vector]),vec(1),Base:toWorld(FanAngle[N,angle]),vec4(0),"cube") #Generate Holo
+            holoParent(N,Base) #Parent it
+            FanAxes[N,vector] = FanAngle[N,angle]:up() #Define Rotation Axes
+            Fan = holoEntity(N)
+            Size = vec(FanSize[N,number]/43.5)
+            if(FanQType[N,number] == 1){
+                P2M = p2mCreate(1,Fan:toWorld(vec(0)),Fan:toWorld(ang(0)))
+                P2M:p2mPushModel(1,"models/meem/fan/fan03.mdl",array(1),vec(0),ang(0,0,0),Size,0,0,0,array())
+                P2M:p2mPushModel(1,"models/meem/fan/fan03.mdl",array(2,3),vec(0),ang(0,30,0),Size,0,0,0,array(vec(2.75,0,0)*Size,vec(-90,0,0),vec(-2.75,0,0)*Size,vec(90,0,0)))
+                P2M:p2mPushModel(1,"models/meem/fan/fan03.mdl",array(2,3),vec(0),ang(0,60,0),Size,0,0,0,array(vec(2.75,0,0)*Size,vec(-90,0,0),vec(-2.75,0,0)*Size,vec(90,0,0)))
+                P2M:p2mPushModel(1,"models/meem/fan/fan03.mdl",array(2,3),vec(0),ang(0,120,0),Size,0,0,0,array(vec(2.75,0,0)*Size,vec(-90,0,0),vec(-2.75,0,0)*Size,vec(90,0,0)))
+                P2M:p2mPushModel(1,"models/meem/fan/fan03.mdl",array(2,3),vec(0),ang(0,150,0),Size,0,0,0,array(vec(2.75,0,0)*Size,vec(-90,0,0),vec(-2.75,0,0)*Size,vec(90,0,0)))
+                P2M:p2mBuild()
+                P2M:p2mSetMaterial(1,FanMat[N,string])
+                P2M:p2mSetUV(1,24)
+                P2M:p2mSetColor(1,FColor)
+                P2M:parentTo(Fan)
+            }elseif(FanQType[N,number] == 2){
+                P2M = p2mCreate(1,Fan:toWorld(vec(0)),Fan:toWorld(ang(0)))
+                P2M:p2mPushModel(1,"models/meem/fan/fan03.mdl",array(1),vec(0),ang(0,0,0),Size,0,0,0,array())
+                P2M:p2mPushModel(1,"models/meem/fan/fan03.mdl",array(2,3),vec(0),ang(0,0,0),Size,0,0,0,array(vec(2.75,0,0)*Size,vec(-90,0,0),vec(-2.75,0,0)*Size,vec(90,0,0)))
+                P2M:p2mPushModel(1,"models/meem/fan/fan03.mdl",array(2,3),vec(0),ang(0,30,0),Size,0,0,0,array(vec(2.75,0,0)*Size,vec(-90,0,0),vec(-2.75,0,0)*Size,vec(90,0,0),vec(0),vec(0,-90,0)))
+                P2M:p2mPushModel(1,"models/meem/fan/fan03.mdl",array(2,3),vec(0),ang(0,-30,0),Size,0,0,0,array(vec(2.75,0,0)*Size,vec(-90,0,0),vec(-2.75,0,0)*Size,vec(90,0,0),vec(0),vec(0,90,0)))
+                P2M:p2mPushModel(1,"models/meem/fan/fan03.mdl",array(2,3),vec(0),ang(0,90,0),Size,0,0,0,array(vec(2.75,0,0)*Size,vec(-90,0,0),vec(-2.75,0,0)*Size,vec(90,0,0),vec(0),vec(0,90,0)))
+                P2M:p2mBuild()
+                P2M:p2mSetMaterial(1,FanMat[N,string])
+                P2M:p2mSetUV(1,24)
+                P2M:p2mSetColor(1,FColor)
+                P2M:parentTo(Fan)
+            }elseif(FanQType[N,number] == 3){
+                P2M = p2mCreate(1,Fan:toWorld(vec(0)),Fan:toWorld(ang(0)))
+                P2M:p2mPushModel(1,"models/meem/fan/fan03.mdl",array(1),vec(0),ang(0,0,0),Size,0,0,0,array())
+                P2M:p2mPushModel(1,"models/meem/fan/fan03.mdl",array(2,3),vec(0),ang(0,0,0),Size,0,0,0,array(vec(2.75,0,0)*Size,vec(-90,0,0),vec(-2.75,0,0)*Size,vec(90,0,0)))
+                P2M:p2mPushModel(1,"models/meem/fan/fan03.mdl",array(2,3),vec(0),ang(0,30,0),Size,0,0,0,array(vec(2.75,0,0)*Size,vec(-90,0,0),vec(-2.75,0,0)*Size,vec(90,0,0),vec(0),vec(0,-90,0)))
+                P2M:p2mPushModel(1,"models/meem/fan/fan03.mdl",array(2,3),vec(0),ang(0,60,0),Size,0,0,0,array(vec(2.75,0,0)*Size,vec(-90,0,0),vec(-2.75,0,0)*Size,vec(90,0,0)))
+                P2M:p2mPushModel(1,"models/meem/fan/fan03.mdl",array(2,3),vec(0),ang(0,-30,0),Size,0,0,0,array(vec(2.75,0,0)*Size,vec(-90,0,0),vec(-2.75,0,0)*Size,vec(90,0,0),vec(0),vec(0,90,0)))
+                P2M:p2mPushModel(1,"models/meem/fan/fan03.mdl",array(2,3),vec(0),ang(0,-60,0),Size,0,0,0,array(vec(2.75,0,0)*Size,vec(-90,0,0),vec(-2.75,0,0)*Size,vec(90,0,0)))
+                P2M:p2mPushModel(1,"models/meem/fan/fan03.mdl",array(2,3),vec(0),ang(0,90,0),Size,0,0,0,array(vec(2.75,0,0)*Size,vec(-90,0,0),vec(-2.75,0,0)*Size,vec(90,0,0),vec(0),vec(0,90,0)))
+                P2M:p2mBuild()
+                P2M:p2mSetMaterial(1,FanMat[N,string])
+                P2M:p2mSetUV(1,24)
+                P2M:p2mSetColor(1,FColor)
+                P2M:parentTo(Fan)
+            }elseif(FanQType[N,number] == 4){
+                P2M = p2mCreate(1,Fan:toWorld(vec(0)),Fan:toWorld(ang(0)))
+                local Size = 74/43.5
+                BladeLength = 28/12
+                BladeThickness = 7.25/4.5
+                P1=8.05*sin(45)/sin(90)
+                P2=8.625*sin(45)/sin(90)
+                P3=(BladeLength*5.125)*sin(45)/sin(90)
+                P2M:p2mPushModel(1,"models/holograms/octagon.mdl",array(),vec(0,0,-0.75),ang(0,22.5,0),vec(16,16,7.75)/12,0,0,0,array())
+                P2M:p2mPushModel(1,"models/holograms/cylinder.mdl",array(),vec(0,0,-4.625),ang(0,22.5,0),vec(4,4,4)/12,0,0,0,array())
+                P2M:p2mPushModel(1,"models/holograms/cube.mdl",array(),vec(0,8.05,-0.7),ang(30,0,0),vec(5,2,0.5)/12,0,0,0,array())
+                P2M:p2mPushModel(1,"models/holograms/cube.mdl",array(),vec(0,8.625,-0.7),ang(30,0,0),vec(8.25,0.5,0.5)/12,0,0,0,array())
+                P2M:p2mPushModel(1,"models/meem/fan/fan02.mdl",array(2,3),vec(0,-BladeLength*5.125,0),ang(0,0,0),vec(BladeThickness,BladeLength,1.75),0,0,0,array(vec(2.75,0,0)*Size,vec(-1,0,0),vec(-2.75,0,0)*Size,vec(1,0,0),vec(0),vec(0,1,0)))
+                P2M:p2mPushModel(1,"models/holograms/cube.mdl",array(),vec(-P1,P1,-0.7),ang(30,45,0),vec(5,2,0.5)/12,0,0,0,array())
+                P2M:p2mPushModel(1,"models/holograms/cube.mdl",array(),vec(-P2,P2,-0.7),ang(30,45,0),vec(8.25,0.5,0.5)/12,0,0,0,array())
+                P2M:p2mPushModel(1,"models/meem/fan/fan02.mdl",array(2,3),vec(P3,-P3,0),ang(0,45,0),vec(BladeThickness,BladeLength,1.75),0,0,0,array(vec(2.75,0,0)*Size,vec(-1,0,0),vec(-2.75,0,0)*Size,vec(1,0,0),vec(0),vec(0,1,0)))
+                P2M:p2mPushModel(1,"models/holograms/cube.mdl",array(),vec(-8.05,0,-0.7),ang(30,90,0),vec(5,2,0.5)/12,0,0,0,array())
+                P2M:p2mPushModel(1,"models/holograms/cube.mdl",array(),vec(-8.625,0,-0.7),ang(30,90,0),vec(8.25,0.5,0.5)/12,0,0,0,array())
+                P2M:p2mPushModel(1,"models/meem/fan/fan02.mdl",array(2,3),vec(BladeLength*5.125,0,0),ang(0,90,0),vec(BladeThickness,BladeLength,1.75),0,0,0,array(vec(2.75,0,0)*Size,vec(-1,0,0),vec(-2.75,0,0)*Size,vec(1,0,0),vec(0),vec(0,1,0)))
+                P2M:p2mPushModel(1,"models/holograms/cube.mdl",array(),vec(-P1,-P1,-0.7),ang(30,135,0),vec(5,2,0.5)/12,0,0,0,array())
+                P2M:p2mPushModel(1,"models/holograms/cube.mdl",array(),vec(-P2,-P2,-0.7),ang(30,135,0),vec(8.25,0.5,0.5)/12,0,0,0,array())
+                P2M:p2mPushModel(1,"models/meem/fan/fan02.mdl",array(2,3),vec(P3,P3,0),ang(0,135,0),vec(BladeThickness,BladeLength,1.75),0,0,0,array(vec(2.75,0,0)*Size,vec(-1,0,0),vec(-2.75,0,0)*Size,vec(1,0,0),vec(0),vec(0,1,0)))
+                P2M:p2mPushModel(1,"models/holograms/cube.mdl",array(),vec(0,-8.05,-0.7),ang(30,180,0),vec(5,2,0.5)/12,0,0,0,array())
+                P2M:p2mPushModel(1,"models/holograms/cube.mdl",array(),vec(0,-8.625,-0.7),ang(30,180,0),vec(8.25,0.5,0.5)/12,0,0,0,array())
+                P2M:p2mPushModel(1,"models/meem/fan/fan02.mdl",array(2,3),vec(0,BladeLength*5.125,0),ang(0,180,0),vec(BladeThickness,BladeLength,1.75),0,0,0,array(vec(2.75,0,0)*Size,vec(-1,0,0),vec(-2.75,0,0)*Size,vec(1,0,0),vec(0),vec(0,1,0)))
+                P2M:p2mPushModel(1,"models/holograms/cube.mdl",array(),vec(P1,-P1,-0.7),ang(30,-135,0),vec(5,2,0.5)/12,0,0,0,array())
+                P2M:p2mPushModel(1,"models/holograms/cube.mdl",array(),vec(P2,-P2,-0.7),ang(30,-135,0),vec(8.25,0.5,0.5)/12,0,0,0,array())
+                P2M:p2mPushModel(1,"models/meem/fan/fan02.mdl",array(2,3),vec(-P3,P3,0),ang(0,-135,0),vec(BladeThickness,BladeLength,1.75),0,0,0,array(vec(2.75,0,0)*Size,vec(-1,0,0),vec(-2.75,0,0)*Size,vec(1,0,0),vec(0),vec(0,1,0)))
+                P2M:p2mPushModel(1,"models/holograms/cube.mdl",array(),vec(8.05,0,-0.7),ang(30,-90,0),vec(5,2,0.5)/12,0,0,0,array())
+                P2M:p2mPushModel(1,"models/holograms/cube.mdl",array(),vec(8.625,0,-0.7),ang(30,-90,0),vec(8.25,0.5,0.5)/12,0,0,0,array())
+                P2M:p2mPushModel(1,"models/meem/fan/fan02.mdl",array(2,3),vec(-BladeLength*5.125,0,0),ang(0,-90,0),vec(BladeThickness,BladeLength,1.75),0,0,0,array(vec(2.75,0,0)*Size,vec(-1,0,0),vec(-2.75,0,0)*Size,vec(1,0,0),vec(0),vec(0,1,0)))
+                P2M:p2mPushModel(1,"models/holograms/cube.mdl",array(),vec(P1,P1,-0.7),ang(30,-45,0),vec(5,2,0.5)/12,0,0,0,array())
+                P2M:p2mPushModel(1,"models/holograms/cube.mdl",array(),vec(P2,P2,-0.7),ang(30,-45,0),vec(8.25,0.5,0.5)/12,0,0,0,array())
+                P2M:p2mPushModel(1,"models/meem/fan/fan02.mdl",array(2,3),vec(-P3,-P3,0),ang(0,-45,0),vec(BladeThickness,BladeLength,1.75),0,0,0,array(vec(2.75,0,0)*Size,vec(-1,0,0),vec(-2.75,0,0)*Size,vec(1,0,0),vec(0),vec(0,1,0)))
+                P2M:p2mBuild()
+                P2M:p2mSetMaterial(1,FanMat[N,string])
+                P2M:p2mSetUV(1,24)
+                P2M:p2mSetColor(1,FColor)
+                P2M:parentTo(Fan)
+            }elseif(FanQType[N,number] == 5){
+                P2M = p2mCreate(1,Fan:toWorld(vec(0)),Fan:toWorld(ang(0)))
+                Size1 = 0.58
+                local Size = 74/43.5*Size1
+                BladeLength = 28/12
+                BladeThickness = 7.25/4.5
+                P1=8.05*sin(60)/sin(90)
+                P11=8.05*sin(30)/sin(90)
+                P2=8.625*sin(60)/sin(90)
+                P21=8.625*sin(30)/sin(90)
+                P3=(BladeLength*5.125)*sin(60)/sin(90)
+                P31=(BladeLength*5.125)*sin(30)/sin(90)
+                P2M:p2mPushModel(1,"models/holograms/hexagon.mdl",array(),vec(0,0,-0.75)*Size1,ang(0,90,0),vec(17,7.75,17)/12*Size1,0,0,0,array())
+                P2M:p2mPushModel(1,"models/holograms/cylinder.mdl",array(),vec(0,0,3.25)*Size1,ang(0,0,0),vec(4,4,4)/12*Size1,0,0,0,array())
+                P2M:p2mPushModel(1,"models/holograms/cube.mdl",array(),vec(0,8.05,-0.7)*Size1,ang(30,0,0),vec(5,2,0.5)/12*Size1,0,0,0,array())
+                P2M:p2mPushModel(1,"models/holograms/cube.mdl",array(),vec(0,8.625,-0.7)*Size1,ang(30,0,0),vec(8.25,0.5,0.5)/12*Size1,0,0,0,array())
+                P2M:p2mPushModel(1,"models/meem/fan/fan02.mdl",array(2,3),vec(0,-BladeLength*5.125,0)*Size1,ang(0,0,0),vec(BladeThickness,BladeLength,1.75)*Size1,0,0,0,array(vec(2.75,0,0)*Size,vec(-1,0,0),vec(-2.75,0,0)*Size,vec(1,0,0),vec(0),vec(0,1,0)))
+                P2M:p2mPushModel(1,"models/holograms/cube.mdl",array(),vec(-P1,P11,-0.7)*Size1,ang(30,60,0),vec(5,2,0.5)/12*Size1,0,0,0,array())
+                P2M:p2mPushModel(1,"models/holograms/cube.mdl",array(),vec(-P2,P21,-0.7)*Size1,ang(30,60,0),vec(8.25,0.5,0.5)/12*Size1,0,0,0,array())
+                P2M:p2mPushModel(1,"models/meem/fan/fan02.mdl",array(2,3),vec(P3,-P31,0)*Size1,ang(0,60,0),vec(BladeThickness,BladeLength,1.75)*Size1,0,0,0,array(vec(2.75,0,0)*Size,vec(-1,0,0),vec(-2.75,0,0)*Size,vec(1,0,0),vec(0),vec(0,1,0)))
+                P2M:p2mPushModel(1,"models/holograms/cube.mdl",array(),vec(-P1,-P11,-0.7)*Size1,ang(30,120,0),vec(5,2,0.5)/12*Size1,0,0,0,array())
+                P2M:p2mPushModel(1,"models/holograms/cube.mdl",array(),vec(-P2,-P21,-0.7)*Size1,ang(30,120,0),vec(8.25,0.5,0.5)/12*Size1,0,0,0,array())
+                P2M:p2mPushModel(1,"models/meem/fan/fan02.mdl",array(2,3),vec(P3,P31,0)*Size1,ang(0,120,0),vec(BladeThickness,BladeLength,1.75)*Size1,0,0,0,array(vec(2.75,0,0)*Size,vec(-1,0,0),vec(-2.75,0,0)*Size,vec(1,0,0),vec(0),vec(0,1,0)))
+                P2M:p2mPushModel(1,"models/holograms/cube.mdl",array(),vec(0,-8.05,-0.7)*Size1,ang(30,180,0),vec(5,2,0.5)/12*Size1,0,0,0,array())
+                P2M:p2mPushModel(1,"models/holograms/cube.mdl",array(),vec(0,-8.625,-0.7)*Size1,ang(30,180,0),vec(8.25,0.5,0.5)/12*Size1,0,0,0,array())
+                P2M:p2mPushModel(1,"models/meem/fan/fan02.mdl",array(2,3),vec(0,BladeLength*5.125,0)*Size1,ang(0,180,0),vec(BladeThickness,BladeLength,1.75)*Size1,0,0,0,array(vec(2.75,0,0)*Size,vec(-1,0,0),vec(-2.75,0,0)*Size,vec(1,0,0),vec(0),vec(0,1,0)))
+                P2M:p2mPushModel(1,"models/holograms/cube.mdl",array(),vec(P1,-P11,-0.7)*Size1,ang(30,-120,0),vec(5,2,0.5)/12*Size1,0,0,0,array())
+                P2M:p2mPushModel(1,"models/holograms/cube.mdl",array(),vec(P2,-P21,-0.7)*Size1,ang(30,-120,0),vec(8.25,0.5,0.5)/12*Size1,0,0,0,array())
+                P2M:p2mPushModel(1,"models/meem/fan/fan02.mdl",array(2,3),vec(-P3,P31,0)*Size1,ang(0,-120,0),vec(BladeThickness,BladeLength,1.75)*Size1,0,0,0,array(vec(2.75,0,0)*Size,vec(-1,0,0),vec(-2.75,0,0)*Size,vec(1,0,0),vec(0),vec(0,1,0)))
+                P2M:p2mPushModel(1,"models/holograms/cube.mdl",array(),vec(P1,P11,-0.7)*Size1,ang(30,-60,0),vec(5,2,0.5)/12*Size1,0,0,0,array())
+                P2M:p2mPushModel(1,"models/holograms/cube.mdl",array(),vec(P2,P21,-0.7)*Size1,ang(30,-60,0),vec(8.25,0.5,0.5)/12*Size1,0,0,0,array())
+                P2M:p2mPushModel(1,"models/meem/fan/fan02.mdl",array(2,3),vec(-P3,-P31,0)*Size1,ang(0,-60,0),vec(BladeThickness,BladeLength,1.75)*Size1,0,0,0,array(vec(2.75,0,0)*Size,vec(-1,0,0),vec(-2.75,0,0)*Size,vec(1,0,0),vec(0),vec(0,1,0)))
+                P2M:p2mBuild()
+                P2M:p2mSetMaterial(1,FanMat[N,string])
+                P2M:p2mSetUV(1,24)
+                P2M:p2mSetColor(1,FColor)
+                P2M:parentTo(Fan)
+            }elseif(FanQType[N,number] == 6){
+                P2M = p2mCreate(1,Fan:toWorld(vec(0)),Fan:toWorld(ang(0)))
+                P2M:p2mPushModel(1,"models/meem/fan/fan03.mdl",array(),vec(0),ang(0,0,0),Size,0,0,0,array())
+                P2M:p2mBuild()
+                P2M:p2mSetMaterial(1,FanMat[N,string])
+                P2M:p2mSetUV(1,24)
+                P2M:p2mSetColor(1,FColor)
+                P2M:parentTo(Fan)
+            }else{
+                P2M = p2mCreate(1,Fan:toWorld(vec(0)),Fan:toWorld(ang(0)))
+                P2M:p2mPushModel(1,"models/meem/fan/fan01.mdl",array(),vec(0),ang(0,0,0),Size,0,0,0,array())
+                P2M:p2mBuild()
+                P2M:p2mSetMaterial(1,FanMat[N,string])
+                P2M:p2mSetUV(1,24)
+                P2M:p2mSetColor(1,FColor)
+                P2M:parentTo(Fan)
+            }
+        }
+        
+        Thetas[N,number] = 0 #Init Theta
+        FanVel[N,number] = 0 #Init Ang Vel
+        
+        
+    }
+    NumRadFans = RadiatorFans:count() #Get total number of radiator fans
+    NumDynFans = DynamicFans:count()
+    if(NumRadFans>0){ #Decide how much heat gets dissipated per fan
+        HeatPerFan = 100/NumRadFans
+    }else{
+        HeatPerFan = 0
+    }
+    
+    CurrentRadiatorBG = -1
+    CurrentDynamics = -1
+    
+    setName("RLC PT2 Generic Fan E2 "+Version)
+}
+
+#Throttle Smoothing
+
+if(HeatThrottle < Throttle){
+    HeatThrottle += 0.5
+    if(HeatThrottle>Throttle){HeatThrottle=Throttle}
+}elseif(HeatThrottle>Throttle){
+    HeatThrottle += -0.5
+    if(HeatThrottle<Throttle){HeatThrottle=Throttle}
+}
+
+#Radiator Heat Balance
+
+HeatAdded = On*(IdleHeat + ((abs(Reverser) & !Dynamics) ? 1 : 0.5)*(100-IdleHeat)*HeatThrottle/100)
+HeatRemoved = !On*AmbientLoss
+for(N=1,NumRadFans){
+    local Index = RadiatorFans[N,number]
+    local Heat = HeatPerFan*FanVel[Index,number]/(FanRPM[Index,number]*6)
+    
+    HeatRemoved += Heat
+}
+Temperature += (HeatAdded-HeatRemoved)/300
+Temperature = clamp(Temperature,0,100)
+
+#Radiator Fan Control
+
+local FOMS = 0 #Is a Fan On Max Speed?
+local RadiatorBG = RadiatorBodygroupOff
+local AnyFansOn = 0
+
+for(N=1,NumRadFans){
+    local Index = RadiatorFans[N,number]
+    
+    local UpShiftThreshold = 101
+    local DnShiftThreshold = -1
+    if(FanSpeed[Index,number]<NumFanSpeeds[Index,number]){
+        local FTU = FanThresholdsUp[Index,array]
+        UpShiftThreshold = FTU[FanSpeed[Index,number]+1,number]
+    }
+    if(FanSpeed[Index,number]>0){
+        local FTD = FanThresholdsDn[Index,array]
+        DnShiftThreshold = FTD[FanSpeed[Index,number],number]
+    }
+    
+    if(On){
+        if(Temperature>UpShiftThreshold){
+            if((FanSpeed[Index,number]==0) & (N<=3)){
+                holoEntity(Index):soundPlay(N,0,FanOn)
+                soundVolume(N,FanVolume[N,number])
+            }
+            FanSpeed[Index,number] = FanSpeed[Index,number] + 1
+        }elseif(Temperature<DnShiftThreshold){
+            FanSpeed[Index,number] = FanSpeed[Index,number] - 1
+            if((FanSpeed[Index,number]==0) & (N<=3)){
+                holoEntity(Index):soundPlay(N,10,FanOff)
+                soundVolume(N,FanVolume[N,number])
+            }
+        }
+        if(FanSpeed[Index,number]>0){AnyFansOn = 1}
+    }else{
+        if((FanSpeed[Index,number]>0) & (N<=3)){
+                holoEntity(Index):soundPlay(N,10,FanOff)
+                soundVolume(N,FanVolume[N,number])
+            }
+        FanSpeed[Index,number] = 0
+    }
+    
+    #FOMS
+    if(FanSpeed[Index,number]==NumFanSpeeds[Index,number]){
+        FOMS = 1
+    }
+    
+    #Vent Bodygroup from Fan Speed - Highest fan takes priority
+    local Speen = FanSpeed[Index,number] #Speen. I am Speen.
+    if(Speen > 0){
+        RadiatorBG = RadiatorBodygroup[Index,array][Speen,number]
+    }
+    
+    
+    #Fan Acceleration
+    
+    local FanTargetVel = FanRPM[Index,number]*6*FanSpeed[Index,number]/NumFanSpeeds[Index,number]
+    local FV = FanVel[Index,number]
+    if(FV<FanTargetVel){
+        FV += FanAccel[Index,number]*0.6
+        if(FV>FanTargetVel){FV = FanTargetVel}
+        FanVel[Index,number] = FV
+    }elseif(FV>FanTargetVel){
+        FV += -FanAccel[Index,number]*0.6
+        if(FV<FanTargetVel){FV = FanTargetVel}
+        FanVel[Index,number] = FV
+    }
+    
+    #Fan Rotation
+    
+    local T = Thetas[Index,number]
+    T += FV/10
+    if(T>360){T += -360}
+    Thetas[Index,number] = T
+    
+    holoAng(Index,Base:toWorld(FanAngle[Index,angle]:rotateAroundAxis(FanAxes[Index,vector],-T)))
+}
+
+IdleOverride = FOMS
+
+#Shutter sound
+if(AnyFansOn & !ShutterQ){
+    ShutterQ = 1
+    if(ShutterSoundOn!=""){Base:soundPlay(0,1,ShutterSoundOn)}
+}elseif(!AnyFansOn & ShutterQ){
+    ShutterQ = 0
+    if(ShutterSoundOff!=""){Base:soundPlay(0,1,ShutterSoundOff)}
+}
+
+#Set Radiator Bodygroup
+
+if((CurrentRadiatorBG != RadiatorBG) | ~Vents){
+    CurrentRadiatorBG = RadiatorBG
+    foreach(K,V:entity = Vents){
+        V:setBodygroup(RadiatorBodygroupID,RadiatorBG)
+    }
+}
+
+#Dynamic Fan Control/Acceleration
+    
+for(N=1,NumDynFans){
+    local Index = DynamicFans[N,number]
+    local FanTargetVel = On*Dynamics*FanRPM[Index,number]*6
+    local FV = FanVel[Index,number]
+    
+    if(FV<FanTargetVel){
+        FV += FanAccel[Index,number]*0.6
+        if(FV>FanTargetVel){FV = FanTargetVel}
+        FanVel[Index,number] = FV
+    }elseif(FV>FanTargetVel){
+        FV += -FanAccel[Index,number]*0.6
+        if(FV<FanTargetVel){FV = FanTargetVel}
+        FanVel[Index,number] = FV
+    }
+    
+    #Dynamic Fan Rotation
+    
+    local T = Thetas[Index,number]
+    T += FV/10
+    if(T>360){T += -360}
+    Thetas[Index,number] = T
+    
+    holoAng(Index,Base:toWorld(FanAngle[Index,angle]:rotateAroundAxis(FanAxes[Index,vector],-T)))
+    
+}
+
+#Dynamic Brake BG
+if((CurrentDynamics!=Dynamics) | ~Vents){
+    CurrentDynamics = Dynamics
+    foreach(K,V:entity = Vents){
+        V:setBodygroup(DynamicBodygroupID,Dynamics ? DynamicBodygroupOn : DynamicBodygroupOff)
+    }
+}
+
+
+#Timer
+if(On | Temperature>0){
+    timer("clk",100)
+}
