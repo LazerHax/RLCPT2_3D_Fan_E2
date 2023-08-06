@@ -13,7 +13,7 @@ if(first()|dupefinished()){
     local Version = "V1.3"
     
     #Pick a Fan Config:
-    #include "ptgamma/extras/q_fancfg/emd_sd80mac"
+    #include "ptgamma/extras/q_fancfg/emd_sd70ace_wam98"
     
     HasDynamics = 0
     
@@ -91,6 +91,46 @@ if(first()|dupefinished()){
                 P2M:parentTo(Fan)
             }elseif(FanQType[N,number] == 4){
                 P2M = p2mCreate(1,Fan:toWorld(vec(0)),Fan:toWorld(ang(0)))
+                P2M:p2mPushModel(1,"models/meem/fan/fan03.mdl",array(1),vec(0),ang(0,0,0),Size,0,0,0,array())
+                P2M:p2mPushModel(1,"models/meem/fan/fan03.mdl",array(2,3),vec(0),ang(0,-135,0),Size,0,0,0,array(vec(2.75,0,0)*Size,vec(-90,0,0),vec(-2.75,0,0)*Size,vec(90,0,0),vec(0),vec(0,90,0)))
+                P2M:p2mPushModel(1,"models/meem/fan/fan03.mdl",array(2,3),vec(0),ang(0,-105,0),Size,0,0,0,array(vec(2.75,0,0)*Size,vec(-90,0,0),vec(-2.75,0,0)*Size,vec(90,0,0),vec(0),vec(0,90,0)))
+                P2M:p2mPushModel(1,"models/meem/fan/fan03.mdl",array(2,3),vec(0),ang(0,-15,0),Size,0,0,0,array(vec(2.75,0,0)*Size,vec(-90,0,0),vec(-2.75,0,0)*Size,vec(90,0,0),vec(0),vec(0,90,0)))
+                P2M:p2mPushModel(1,"models/meem/fan/fan03.mdl",array(2,3),vec(0),ang(0,15,0),Size,0,0,0,array(vec(2.75,0,0)*Size,vec(-90,0,0),vec(-2.75,0,0)*Size,vec(90,0,0),vec(0),vec(0,90,0)))
+                P2M:p2mPushModel(1,"models/meem/fan/fan03.mdl",array(2,3),vec(0),ang(0,105,0),Size,0,0,0,array(vec(2.75,0,0)*Size,vec(-90,0,0),vec(-2.75,0,0)*Size,vec(90,0,0),vec(0),vec(0,90,0)))
+                P2M:p2mPushModel(1,"models/meem/fan/fan03.mdl",array(2,3),vec(0),ang(0,135,0),Size,0,0,0,array(vec(2.75,0,0)*Size,vec(-90,0,0),vec(-2.75,0,0)*Size,vec(90,0,0),vec(0),vec(0,90,0)))
+                P2M:p2mBuild()
+                P2M:p2mSetMaterial(1,FanMat[N,string])
+                P2M:p2mSetUV(1,24)
+                P2M:p2mSetColor(1,FColor)
+                P2M:parentTo(Fan)
+            }elseif(FanQType[N,number] == 5){
+                P2M = p2mCreate(1,Fan:toWorld(vec(0)),Fan:toWorld(ang(0)))
+                P2M:p2mPushModel(1,"models/meem/fan/fan03.mdl",array(1),vec(0),ang(0,0,0),Size,0,0,0,array())
+                P2M:p2mPushModel(1,"models/meem/fan/fan03.mdl",array(2,3),vec(0),ang(0,90,0),Size,0,0,0,array(vec(2.75,0,0)*Size,vec(-90,0,0),vec(-2.75,0,0)*Size,vec(90,0,0)))
+                P2M:p2mPushModel(1,"models/meem/fan/fan03.mdl",array(2,3),vec(0),ang(0,0,0),Size,0,0,0,array(vec(2.75,0,0)*Size,vec(-90,0,0),vec(-2.75,0,0)*Size,vec(90,0,0)))
+                P2M:p2mBuild()
+                P2M:p2mSetMaterial(1,FanMat[N,string])
+                P2M:p2mSetUV(1,24)
+                P2M:p2mSetColor(1,FColor)
+                P2M:parentTo(Fan)
+            }elseif(FanQType[N,number] == 6){
+                P2M = p2mCreate(1,Fan:toWorld(vec(0)),Fan:toWorld(ang(0)))
+                P2M:p2mPushModel(1,"models/meem/fan/fan03.mdl",array(),vec(0),ang(0,0,0),Size,0,0,0,array())
+                P2M:p2mBuild()
+                P2M:p2mSetMaterial(1,FanMat[N,string])
+                P2M:p2mSetUV(1,24)
+                P2M:p2mSetColor(1,FColor)
+                P2M:parentTo(Fan)
+            }elseif(FanQType[N,number] == 7){
+                P2M = p2mCreate(1,Fan:toWorld(vec(0)),Fan:toWorld(ang(0)))
+                P2M:p2mPushModel(1,"models/wam98_trainparts/miscellaneous/emd_sd70ace_m-2_radfan.mdl",array(),vec(0),ang(0,0,0),Size*43.5/53.5,0,0,0,array())
+                P2M:p2mBuild()
+                P2M:p2mSetMaterial(1,FanMat[N,string])
+                P2M:p2mSetUV(1,24)
+                P2M:p2mSetColor(1,FColor)
+                P2M:parentTo(Fan)
+            }elseif(FanQType[N,number] == 8){
+                P2M = p2mCreate(1,Fan:toWorld(vec(0)),Fan:toWorld(ang(0)))
                 local Size = 74/43.5
                 BladeLength = 28/12
                 BladeThickness = 7.25/4.5
@@ -128,7 +168,7 @@ if(first()|dupefinished()){
                 P2M:p2mSetUV(1,24)
                 P2M:p2mSetColor(1,FColor)
                 P2M:parentTo(Fan)
-            }elseif(FanQType[N,number] == 5){
+            }elseif(FanQType[N,number] == 9){
                 P2M = p2mCreate(1,Fan:toWorld(vec(0)),Fan:toWorld(ang(0)))
                 Size1 = 0.58
                 local Size = 74/43.5*Size1
@@ -165,17 +205,9 @@ if(first()|dupefinished()){
                 P2M:p2mSetUV(1,24)
                 P2M:p2mSetColor(1,FColor)
                 P2M:parentTo(Fan)
-            }elseif(FanQType[N,number] == 6){
-                P2M = p2mCreate(1,Fan:toWorld(vec(0)),Fan:toWorld(ang(0)))
-                P2M:p2mPushModel(1,"models/meem/fan/fan03.mdl",array(),vec(0),ang(0,0,0),Size,0,0,0,array())
-                P2M:p2mBuild()
-                P2M:p2mSetMaterial(1,FanMat[N,string])
-                P2M:p2mSetUV(1,24)
-                P2M:p2mSetColor(1,FColor)
-                P2M:parentTo(Fan)
             }else{
                 P2M = p2mCreate(1,Fan:toWorld(vec(0)),Fan:toWorld(ang(0)))
-                P2M:p2mPushModel(1,"models/meem/fan/fan01.mdl",array(),vec(0),ang(0,0,0),Size,0,0,0,array())
+                P2M:p2mPushModel(1,"models/meem/fan/fan01.mdl",array(),vec(0),ang(0,0,0),Size*43.5/62.5,0,0,0,array())
                 P2M:p2mBuild()
                 P2M:p2mSetMaterial(1,FanMat[N,string])
                 P2M:p2mSetUV(1,24)
